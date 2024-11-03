@@ -9,5 +9,5 @@ pdfminer.six
 streamlit-tags
 Pillow
 nltk
-spacy
+spacy[lookups] 
 scikit-learn
