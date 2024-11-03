@@ -1,0 +1,25 @@
+streamlit==1.25.0
+pandas==1.5.3
+selenium==4.9.1
+geocoder==1.38.1
+pymysql==1.0.2
+geopy==2.3.0
+pdfminer.six==20221105
+streamlit-tags==1.2.5
+Pillow==9.4.0
+nltk==3.8.1
+spacy==3.5.1
+scikit-learn==1.2.2
+plotly==5.14.1
+
+# Additional libraries that may not require specific versioning:
+uuid
+os
+io
+time
+random
+socket
+secrets
+datetime
+platform
+base64
