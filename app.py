@@ -43,6 +43,16 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 # Local imports
 from selenium.webdriver.common.by import By
+import spacy
+from spacy.cli import download
+
+# Check if the model is installed, download if not
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("Downloading the 'en_core_web_sm' model...")
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 from Courses import ds_course, web_course, android_course, ios_course, uiux_course
 nlp = spacy.load('en_core_web_sm')
