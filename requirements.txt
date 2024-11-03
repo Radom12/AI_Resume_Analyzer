@@ -13,4 +13,3 @@ nltk
 spacy
 scikit-learn
 reportlab
-en-core-web-sm  # Note: This should be installed with `python -m spacy download en_core_web_sm`
