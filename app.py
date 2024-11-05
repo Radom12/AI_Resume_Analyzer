@@ -1,9 +1,5 @@
-
-# Third-party imports
 import streamlit as st
-
 st.set_page_config(page_title="AI Resume Analyzer", page_icon=":page_facing_up:")
-# Standard library imports
 import os
 import io
 import uuid
@@ -30,7 +26,6 @@ import geocoder
 import pymysql
 from geopy.geocoders import Nominatim
 from selenium import webdriver
-#from pyresparser import ResumeParser
 from pdfminer.high_level import extract_text
 from streamlit_tags import st_tags
 from PIL import Image
@@ -41,12 +36,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-# Local imports
 from selenium.webdriver.common.by import By
 import spacy
 from spacy.cli import download
 
-# Check if the model is installed, download if not
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
@@ -57,18 +50,14 @@ except OSError:
 from Courses import ds_course, web_course, android_course, ios_course, uiux_course
 nlp = spacy.load('en_core_web_sm')
 
-# Define some important keywords for resume analysis
 skills_keywords = ["python", "java", "machine learning", "data analysis", "sql", "project management",
                    "cloud computing", "aws", "azure", "docker", "react", "node.js", "deep learning"]
 
-# Download NLTK resources
-# Download necessary NLTK data
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
 
-# Security and geolocation functions
 def generate_session_token():
     return secrets.token_hex(16)
 
@@ -87,7 +76,6 @@ def parse_resume(file_path):
     text = extract_text(file_path)
     lines = text.split('\n')
     
-    # Simple parsing logic (you may need to adjust this based on your needs)
     parsed_data = {
         'name': lines[0] if lines else 'Not found',
         'email': next((line for line in lines if '@' in line), 'Not found'),
@@ -105,7 +93,6 @@ def init_database():
     if connection:
         try:
             with connection.cursor() as cursor:
-                # Create users table with additional columns
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS users (
                         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -163,18 +150,14 @@ def analyze_resume(resume_text):
     from collections import Counter
     import en_core_web_sm
 
-    # Load English tokenizer, POS tagger, parser, NER, and word vectors
     nlp = en_core_web_sm.load()
 
-    # Preprocess the text: remove extra commas and normalize whitespace
     resume_text = re.sub(r',+', ', ', resume_text)  # Ensure there's a space after commas
     resume_text = re.sub(r'\s+', ' ', resume_text)  # Replace multiple spaces with a single space
     resume_text = resume_text.strip()
 
-    # Parse the resume text with spaCy
     resume_doc = nlp(resume_text)
 
-    # Extract personal information using NER
     name = None
     email = None
     phone = None
@@ -186,7 +169,6 @@ def analyze_resume(resume_text):
         elif ent.label_ == "PHONE" and not phone:
             phone = ent.text
 
-    # Fallback for email and phone using regex if NER doesn't find them
     if not email:
         email_pattern = re.compile(r'[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+')
         emails = re.findall(email_pattern, resume_text)
@@ -197,7 +179,6 @@ def analyze_resume(resume_text):
         phones = re.findall(phone_pattern, resume_text)
         phone = phones[0] if phones else "Not found"
 
-    # Extract education details
     education = []
     education_degrees = [
         "Bachelor", "Baccalaureate", "Undergraduate", "BA", "BS", "BSc",
@@ -210,8 +191,6 @@ def analyze_resume(resume_text):
                 education.append(sent.text.strip())
                 break
 
-    # Load a comprehensive skills list
-    # For demonstration, here's a small sample. Replace with a full list in practice.
     skills_list = [
         "Python", "Machine Learning", "Data Analysis", "Project Management",
         "Cloud Computing", "SQL", "Java", "C++", "AWS", "TensorFlow", "Keras",
@@ -219,19 +198,16 @@ def analyze_resume(resume_text):
         "Metasploit", "SEO", "pandas", "scikit-learn", "Gensim", "NLTK", "BeautifulSoup"
     ]
 
-    # Create a PhraseMatcher for skills
     matcher = PhraseMatcher(nlp.vocab, attr='LOWER')
     patterns = [nlp.make_doc(skill.lower()) for skill in skills_list]
     matcher.add("SKILLS", patterns)
 
-    # Find matches in the resume text
     matches = matcher(resume_doc)
     skills_found = set()
     for match_id, start, end in matches:
         span = resume_doc[start:end]
         skills_found.add(span.text)
 
-    # Remove personal information from skills
     personal_info = set()
     if name:
         personal_info.update(name.lower().split())
@@ -241,7 +217,6 @@ def analyze_resume(resume_text):
         personal_info.update(phone.lower().split())
     skills_found = {skill for skill in skills_found if skill.lower() not in personal_info}
 
-    # Extract experience
     experience = []
     for ent in resume_doc.ents:
         if ent.label_ == "ORG":
@@ -249,7 +224,6 @@ def analyze_resume(resume_text):
 
     experience = list(set(experience))
 
-    # Calculate Resume Score based on Skill Matches
     required_skills = set([
         "Python", "Machine Learning", "Data Analysis", "Project Management",
         "Cloud Computing", "SQL"
@@ -258,7 +232,6 @@ def analyze_resume(resume_text):
     resume_score = len(matched_skills) / len(required_skills) * 100
     resume_score = round(resume_score, 2)
 
-    # Return analyzed data
     resume_data = {
         "name": name if name else "Not found",
         "email": email,
@@ -285,11 +258,9 @@ def generate_pdf_report(resume_data, resume_score, score_breakdown, recommended_
     styles = getSampleStyleSheet()
     elements = []
 
-    # Title
     elements.append(Paragraph("Resume Analysis Report", styles['Title']))
     elements.append(Spacer(1, 12))
 
-    # Basic Information
     elements.append(Paragraph("Basic Information", styles['Heading2']))
     basic_info = [
         ["Name", resume_data.get('name', 'Not found')],
@@ -315,11 +286,9 @@ def generate_pdf_report(resume_data, resume_score, score_breakdown, recommended_
     elements.append(t)
     elements.append(Spacer(1, 12))
 
-    # Resume Score
     elements.append(Paragraph(f"Resume Score: {resume_score}/100", styles['Heading2']))
     elements.append(Spacer(1, 12))
 
-    # Score Breakdown
     elements.append(Paragraph("Score Breakdown", styles['Heading2']))
     score_table = [[category, f"{score}/10"] for category, score in score_breakdown.items()]
     t = Table(score_table)
@@ -340,7 +309,6 @@ def generate_pdf_report(resume_data, resume_score, score_breakdown, recommended_
     elements.append(t)
     elements.append(Spacer(1, 12))
 
-    # Recommendations
     elements.append(Paragraph("Recommendations", styles['Heading2']))
     elements.append(Paragraph(f"Recommended Field: {recommended_field}", styles['Normal']))
     elements.append(Paragraph("Recommended Skills:", styles['Normal']))
@@ -363,59 +331,45 @@ def user_page():
     It includes features such as basic information extraction, skills analysis,
     field and course recommendations, resume scoring, and PDF report generation.
     """
-    # Generate a unique session ID if not already present
     if 'session_id' not in st.session_state:
         st.session_state.session_id = generate_unique_id()
 
     st.title("AI Resume Analyzer")
     st.write("Upload your resume and get insights!")
     
-    # Resume upload
     uploaded_file = st.file_uploader("Choose your resume (PDF)", type="pdf")
     
     if uploaded_file is not None:
         try:
             with st.spinner("Analyzing your resume..."):
-                # Save the file temporarily
-                # Line 210: Add this code to create the directory if it does not exist
+                
                 temp_directory = "temp"
                 if not os.path.exists(temp_directory):
-                    os.makedirs(temp_directory)  # Create 'temp' directory if it doesn't exist
+                    os.makedirs(temp_directory)  
 
-                # Line 215: Modified to use the ensured directory
                 temp_file_path = os.path.join(temp_directory, f"resume_{st.session_state.session_id}.pdf")
                 with open(temp_file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
 
                 
-                # Extract text from PDF
                 resume_text = extract_text(temp_file_path)
                 
-                # Analyze resume (using cached function)
                 progress_bar = st.progress(0)
                 for i in range(100):
-                    # Simulating work (replace with actual analysis steps if needed)
                     time.sleep(0.01)
                     progress_bar.progress(i + 1)
                 resume_data = parse_resume(temp_file_path)
             
-            # Display analysis results
             display_resume_analysis(resume_data)
 
-            # Generate and offer PDF report download
             offer_pdf_download(resume_data)
-
-            # Display additional resources
             display_additional_resources()
 
-            # Clean up the temporary file
             os.remove(temp_file_path)
 
         except Exception as e:
             st.error(f"An error occurred while processing your resume: {str(e)}")
             st.error("Please make sure you've uploaded a valid PDF file and try again.")
-
-    # Add a button to clear the session
     if st.button("Clear Session"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
@@ -428,53 +382,44 @@ def display_resume_analysis(resume_data):
     Args:
     resume_data (dict): A dictionary containing the analyzed resume data.
     """
-    # Display basic information
     st.subheader("Basic Information")
     st.write(f"Name: {resume_data.get('name', 'Not found')}")
     st.write(f"Email: {resume_data.get('email', 'Not found')}")
     st.write(f"Phone: {resume_data.get('mobile_number', 'Not found')}")
     st.write(f"Degree: {resume_data.get('degree', 'Not found')}")
     
-    # Determine and display experience level
     experience = resume_data.get('total_experience', 0)
     level = "Fresher" if experience == 0 else "Intermediate" if experience < 3 else "Experienced"
     st.write(f"Experience Level: {level}")
     
-    # Display skills
     skills = resume_data.get('skills', [])
     st.subheader("Skills")
     st.write(", ".join(skills))
     
-    # Skills recommendation
     st.subheader("Skills Recommendation")
     recommended_skills = recommend_skills(skills)
     st.write("Based on your current skills, we recommend developing these skills:")
     st.write(", ".join(recommended_skills))
 
-    # Field recommendation
     st.subheader("Field Recommendation")
     recommended_field = recommend_field(skills)
     st.write(f"Based on your skills, we recommend exploring the field of: {recommended_field}")
 
-    # Course recommendation
     st.subheader("Course Recommendation")
     recommended_courses = recommend_courses(recommended_field)
     st.write("Here are some courses we recommend:")
     for course in recommended_courses[:5]:
         st.write(f"- {course}")
 
-    # Resume score calculation and display
     st.subheader("Resume Score")
     resume_score = calculate_resume_score(resume_data)
     st.write(f"Your resume score: {resume_score}/100")
     
-    # Resume score breakdown
     st.subheader("Resume Score Breakdown")
     score_breakdown = get_resume_score_breakdown(resume_data)
     for category, score in score_breakdown.items():
         st.write(f"{category}: {score}/10")
 
-    # Store user data with additional fields
     user_data = {
         "name": resume_data.get('name', 'Not found'),
         "email": resume_data.get('email', 'Not found'),
@@ -512,11 +457,9 @@ def display_additional_resources():
     """
     Displays additional resources such as resume writing tips and interview preparation videos.
     """
-    # Resume writing tips
     st.subheader("Resume Writing Tips")
     st.video("https://www.youtube.com/watch?v=y8YH0Qbu5h4")
 
-    # Interview preparation tips
     st.subheader("Interview Preparation Tips")
     st.video("https://www.youtube.com/watch?v=Ji46s5BHdr0")
 
@@ -538,39 +481,30 @@ def get_resume_score_breakdown(resume_data):
         "Keywords": 0
     }
     
-    # Contact Information
     if resume_data.get('name'): score_breakdown["Contact Information"] += 3
     if resume_data.get('email'): score_breakdown["Contact Information"] += 3
     if resume_data.get('mobile_number'): score_breakdown["Contact Information"] += 4
     
-    # Education
     if resume_data.get('degree'): score_breakdown["Education"] += 5
     if resume_data.get('college_name'): score_breakdown["Education"] += 5
     
-    # Skills
     skills = resume_data.get('skills', [])
     score_breakdown["Skills"] = min(len(skills), 10)
     
-    # Experience
     experience = resume_data.get('total_experience', 0)
     score_breakdown["Experience"] = min(experience * 2, 10)
     
-    # Projects (assuming projects are stored in a 'projects' field)
     projects = resume_data.get('projects', [])
     score_breakdown["Projects"] = min(len(projects) * 2, 10)
     
-    # Certifications (assuming certifications are stored in a 'certifications' field)
     certifications = resume_data.get('certifications', [])
     score_breakdown["Certifications"] = min(len(certifications) * 2, 10)
     
-    # Summary/Objective (assuming summary is stored in a 'summary' field)
     if resume_data.get('summary'): score_breakdown["Summary/Objective"] = 10
     
-    # Achievements (assuming achievements are stored in an 'achievements' field)
     achievements = resume_data.get('achievements', [])
     score_breakdown["Achievements"] = min(len(achievements) * 2, 10)
     
-    # Formatting and Keywords are set to a default value as they require more complex analysis
     score_breakdown["Formatting"] = 8
     score_breakdown["Keywords"] = 7
     
@@ -655,11 +589,9 @@ def scrape_linkedin_jobs(job_title, location):
     
     driver = None
     try:
-        # Initialize the WebDriver with the Firefox driver
         driver = webdriver.Firefox(options=options)
         driver.get(url)
         
-        # Wait for job cards to load
         wait = WebDriverWait(driver, 10)
         job_cards = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "base-card")))
         
@@ -879,7 +811,6 @@ def admin_login():
     password = st.text_input("Password", type="password")
     
     if st.button("Login"):
-        # In a real application, use a secure password hashing method
         if username == "admin" and password == "password":  # Replace with secure authentication
             st.session_state.admin_logged_in = True
             st.success("Logged in successfully!")
@@ -976,27 +907,21 @@ def show_analytics():
     
     st.title("Admin Analytics Dashboard")
     
-    # User Activity Over Time
     st.subheader("User Activity Over Time")
     if not user_data.empty and 'timestamp' in user_data.columns:
-        # Convert timestamp to datetime if it's not already
         user_data['timestamp'] = pd.to_datetime(user_data['timestamp'])
         
-        # Filter data for the last 30 days
         last_30_days = datetime.datetime.now() - datetime.timedelta(days=30)
         recent_user_data = user_data[user_data['timestamp'] >= last_30_days]
         
-        # Group by date
         user_counts = recent_user_data.groupby(user_data['timestamp'].dt.date).size().reset_index(name='counts')
         
-        # Create line graph
         fig_users = px.line(user_counts, x='timestamp', y='counts', title='Number of Users Over the Last 30 Days')
         fig_users.update_layout(xaxis_title='Date', yaxis_title='Number of Users')
         st.plotly_chart(fig_users)
     else:
         st.write("No user data available for the specified period.")
     
-    # Predicted Fields pie chart
     st.subheader("Predicted Fields")
     if not user_data.empty and 'recommended_field' in user_data.columns:
         field_counts = user_data['recommended_field'].value_counts()
@@ -1005,7 +930,6 @@ def show_analytics():
     else:
         st.write("No data available for Predicted Fields.")
     
-    # Experience levels pie chart
     st.subheader("Experience Levels")
     if not user_data.empty and 'experience_level' in user_data.columns:
         level_counts = user_data['experience_level'].value_counts()
@@ -1014,7 +938,6 @@ def show_analytics():
     else:
         st.write("No data available for Experience Levels.")
     
-    # Resume scores histogram
     st.subheader("Resume Score Distribution")
     if not user_data.empty and 'resume_score' in user_data.columns:
         fig_scores = px.histogram(user_data, x="resume_score", nbins=20, title="Resume Score Distribution")
@@ -1023,7 +946,6 @@ def show_analytics():
     else:
         st.write("No data available for Resume Scores.")
     
-    # Feedback ratings bar chart
     st.subheader("Feedback Ratings")
     if not feedback_data.empty and 'rating' in feedback_data.columns:
         rating_counts = feedback_data['rating'].value_counts().sort_index()
@@ -1046,20 +968,15 @@ def main():
     on user selection. It also includes error handling for robustness.
     """
     try:
-        # Set up the Streamlit page
-      
-        # Initialize the database
+        
         init_database()
         
-        # Generate or retrieve session token
         if 'session_token' not in st.session_state:
             st.session_state.session_token = generate_session_token()
         
-        # Get user's geolocation and device info
         latlng, city, state, country = get_geolocation()
         device_info = get_device_info()
         
-        # Store user info (in a production app, you'd save this to a database)
         user_info = {
             "session_token": st.session_state.session_token,
             "geolocation": {
@@ -1072,19 +989,15 @@ def main():
             "device_info": device_info
         }
         
-        # Set up the sidebar
         st.sidebar.title("AI Resume Analyzer")
         st.sidebar.image("C:/Users/Abhyu/Desktop/resum.png", width=200)        
-        # Navigation menu
         pages = ["User", "Find Jobs", "Feedback", "About", "Admin"]
         page = st.sidebar.radio("Navigation", pages)
 
-        # Display user info in sidebar
         st.sidebar.subheader("Session Info")
         st.sidebar.text(f"Session ID: {st.session_state.session_token[:8]}...")
         st.sidebar.text(f"Location: {city}, {country}")
         
-        # Main content based on selected page
         if page == "User":
             user_page()
         elif page == "Find Jobs":
@@ -1096,17 +1009,14 @@ def main():
         elif page == "Admin":
             admin_page()
         
-        # Footer
         st.sidebar.markdown("---")
         st.sidebar.info("© 2024 AI Resume Analyzer. Designed by Abhyudith Bharadhwaj")
         
-        # Add a logout button for admin
         if st.session_state.get('admin_logged_in', False) and st.sidebar.button("Logout"):
             st.session_state.admin_logged_in = False
             st.experimental_rerun()
         
     except Exception as e:
-        # Error handling
         st.error(f"An error occurred: {str(e)}")
         st.error("Please try refreshing the page or contact support if the issue persists.")
 
