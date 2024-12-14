@@ -72,3 +72,13 @@ Your resume data is only used during your session for analysis and is not perman
 2. **Improper Admin Visualization**: The admin dashboard may show inconsistent or unclear visual representations of user data. Enhancements to data visualization are planned for the next update.
 3. **Limited Feedback Options**: The current feedback system provides basic text input, limiting user interaction. An expanded feedback mechanism with more structured input options will be implemented soon.
 These issues are actively being worked on, and improvements will be released in future updates to enhance functionality and user experience.
+
+## Star History
+
+<a href="https://star-history.com/#Radom12/AI_Resume_Analyzer&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Radom12/AI_Resume_Analyzer&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Radom12/AI_Resume_Analyzer&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Radom12/AI_Resume_Analyzer&type=Date" />
+ </picture>
+</a>
